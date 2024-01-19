@@ -1,0 +1,12 @@
+.jupyter_cache
+
+index.*
+!index.qmd
+
+data/*
+.jupyter_cache/
+
+index_files/
+*.ipynb
+*.docx
+*.pdf

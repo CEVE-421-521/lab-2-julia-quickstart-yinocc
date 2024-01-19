@@ -1,0 +1,154 @@
+---
+title: "Lab 2: Julia Quickstart"
+subtitle: "Functions, Logic, and Packages"
+author: "YOUR NAME <NETID>" # YOU SHOULD EDIT THIS
+date: 2024-01-19
+week: 2
+categories: [Lab]
+
+# code to use
+jupyter: julia-1.10
+
+# execution options
+execute:
+  freeze: auto  
+  cache: true
+
+format: 
+    html:
+        theme: spacelab
+        copy-code: true
+        code-overflow: wrap
+        toc: true
+        anchor-sections: true
+        callout-appearance: simple
+        reference-location: document
+        citations-hover: true
+        code-annotations: hover
+        code-line-numbers: true
+        html-math-method: katex
+
+    # I AM GETTING WEIRD ISSUES WHEN RENDERING TO PDF
+    # THAT I DO NOT WANT TO INFLICT ON YOU
+    # HOPE TO TROUBLESHOOT SOON, FOR NOW USE DOCX
+    # PLEASE EXPLORE https://quarto.org/docs/reference/formats/docx.html
+    # FOR WAYS TO MAKE THE OUTPUT MORE ATTRACTIVE!
+
+    docx: 
+        toc: true
+        fig-format: png
+        number-sections: true
+        code-line-numbers: true
+
+date-format: "ddd., MMM. D"
+---
+
+## First steps
+
+We start by loading the packages we will use in this lab
+
+```{julia}
+using CSV
+using DataFrames
+using DataFramesMeta
+using Dates
+using Plots
+using StatsBase: mean
+using StatsPlots
+using Unitful
+```
+
+## Defining a function
+
+In [`index.qmd`](index.qmd), we read in a CSV file from scratch.
+However, we'd like to repeat this process for each year of data, and to do it in a consistent way so that we can read in the data for all available years into a single file.
+To do this, we'll write a *function* that we can use to read in the data for any year.
+Specifically, our function will take in the year as an argument, and return a `DataFrame` with the data for that year.
+
+Before we do that, let's define a function that will return the filename for a given year.
+It's often valuable to stack several functions together.
+
+```{julia}
+#| output: false
+get_fname(year::Int) = "data/tidesandcurrents-8638610-$(year)-NAVD-GMT-metric.csv"
+```
+
+Now we're ready to define our function:
+
+```julia
+
+function read_tides(year::Int)
+    
+    # define the CSV file corresponding to our year of choice
+    fname = get_fname(year)
+
+    # a constant, don't change this
+    date_format = "yyyy-mm-dd HH:MM"
+    
+    # <YOUR CODE GOES HERE>
+    # 1. read in the CSV file and save as a dataframe
+    # 2. convert the "Date Time" column to a DateTime object
+    # 3. convert the " Water Level" column to meters
+    # 4. rename the columns to "datetime" and "lsl"
+    # 5. select the "datetime" and "lsl" columns
+    # 6. return the dataframe
+end
+
+# print out the first 10 rows of the 1928 data
+first(read_tides(1928), 10) 
+```
+
+::: {.callout-important}
+## Instructions
+
+Fill out this function.
+Your function should implement the six steps indicated in the instructions.
+Use the example code from [`index.qmd`](index.qmd) to help you.
+When it's done, convert it to a live code block by replacing \```julia\``` with \```{julia}\```.
+When you run this code, it should print out the first 10 rows of the 1928 data.
+Make sure they look right!
+:::
+
+## Building the dataset
+
+Now that we have the ability to read in the data corresponding to any year, we can read them all in and combine into a single `DataFrame`.
+First, let's read in all the data.
+
+::: {.callout-important}
+## Instructions
+
+1. **Hint**: to _vectorize_ a function means to apply it to each element of a vector. For example, `f.(x)` will apply the function `f` to each element of the vector `x`. This is a very common operation in Julia!
+1. Update the code blocks below, then replace \```julia\``` with \```{julia}\```.
+:::
+
+```julia
+years = 1928:2021 # all the years of data
+annual_data = # call the read_tides function on each year (see hint above!)
+typeof(annual_data) # should be a vector of DataFrames
+```
+
+Next, we'll use the `vcat` function to combine all the data into a single `DataFrame`.
+
+```julia
+df = vcat(annual_data...)
+first(df, 5)
+```
+
+And we can look at the last 5 rows
+
+```julia
+last(df, 5)
+```
+
+Finally, we'll make sure we drop any missing data.
+
+```julia
+dropmissing!(df) # drop any missing data
+```
+
+## Plots
+
+1. Plot the hourly water levels for March 2020, using subsetting and plotting techniques from the instructions
+1. In the instructions, we plotted the average monthly water level from each month using `groupby`. Repeat this analysis, using the full dataset (all years). 
+1. Now repeat the analysis, but group by day of the year. What do you notice? (**Hint**: use `Dates.dayofyear` to get the day of the year from a `DateTime` object)
+
