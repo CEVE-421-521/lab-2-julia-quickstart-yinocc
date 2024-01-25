@@ -127,34 +127,77 @@ First, let's read in all the data.
 1. Update the code blocks below, then replace \```julia\``` with \```{julia}\```.
 :::
 
-```julia
+```{julia}
 years = 1928:2021 # all the years of data
-annual_data = # call the read_tides function on each year (see hint above!)
+annual_data = read_tides.(years)# call the read_tides function on each year (see hint above!)
 typeof(annual_data) # should be a vector of DataFrames
 ```
 
 Next, we'll use the `vcat` function to combine all the data into a single `DataFrame`.
 
-```julia
+```{julia}
 df = vcat(annual_data...)
 first(df, 5)
 ```
 
 And we can look at the last 5 rows
 
-```julia
+```{julia}
 last(df, 5)
 ```
 
 Finally, we'll make sure we drop any missing data.
 
-```julia
+```{julia}
 dropmissing!(df) # drop any missing data
 ```
 
 ## Plots
 
 1. Plot the hourly water levels for March 2020, using subsetting and plotting techniques from the instructions
-1. In the instructions, we plotted the average monthly water level from each month using `groupby`. Repeat this analysis, using the full dataset (all years). 
-1. Now repeat the analysis, but group by day of the year. What do you notice? (**Hint**: use `Dates.dayofyear` to get the day of the year from a `DateTime` object)
+```{julia}
+t_start = Dates.DateTime(2020, 3, 1, 0) 
+t_end = Dates.DateTime(2020, 4, 1, 0)
+df_month = @subset(df, t_start .<= :datetime .<= t_end)
+plot(
+    df_month.datetime,
+    df_month.lsl;
+    title="Water levels",
+    label=false, 
+)
+```
 
+2. In the instructions, we plotted the average monthly water level from each month using `groupby`. Repeat this analysis, using the full dataset (all years). 
+
+```{julia}
+df[!, :month] = Dates.month.(df.datetime)
+dropmissing!(df, :lsl)
+df_bymonth = groupby(df, :month)
+df_climatology = combine(df_bymonth, :lsl => mean => :lsl_avg);
+
+plot(
+    df_climatology.month,
+    df_climatology.lsl_avg;
+    xticks=1:12,
+    title="Monthly Water levels",
+    linewidth=2.5,
+    label=false,
+)
+```
+
+3. Now repeat the analysis, but group by day of the year. What do you notice? (**Hint**: use `Dates.dayofyear` to get the day of the year from a `DateTime` object)
+
+```{julia}
+df[!, :dayofyear] = Dates.dayofyear.(df.datetime) 
+dropmissing!(df, :lsl) 
+df_byday = groupby(df, :dayofyear) 
+df_climatology = combine(df_byday, :lsl => mean => :lsl_avg); 
+plot(
+    df_climatology.dayofyear, 
+    df_climatology.lsl_avg;
+    xticks=1:365, 
+    title="Average Water level",
+    linewidth=2.5, 
+    label=false,
+)
+```
