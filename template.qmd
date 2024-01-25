@@ -75,7 +75,7 @@ get_fname(year::Int) = "data/tidesandcurrents-8638610-$(year)-NAVD-GMT-metric.cs
 
 Now we're ready to define our function:
 
-```julia
+```{julia}
 
 function read_tides(year::Int)
     
@@ -89,13 +89,15 @@ function read_tides(year::Int)
     # 1. read in the CSV file and save as a dataframe
     df = CSV.read(fname,DataFrame)
     # 2. convert the "Date Time" column to a DateTime object
-    
-    define[!,"Water Level"].* = 1"um"
+    df[!, "Date Time"] = DateTime.(df[!, "Date Time"], date_format)
     # 3. convert the " Water Level" column to meters
-
+    df[!, " Water Level"] .*= 1u"m"
     # 4. rename the columns to "datetime" and "lsl"
+    rename!(df, "Date Time" => "datetime", " Water Level" => "lsl")
     # 5. select the "datetime" and "lsl" columns
+    selected_df = select(df, :datetime, :lsl)
     # 6. return the dataframe
+    return selected_df
 end
 
 # print out the first 10 rows of the 1928 data
